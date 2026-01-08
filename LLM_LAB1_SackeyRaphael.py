@@ -1,73 +1,86 @@
 """
-LLM_LAB1 - Number Guessing Game
-Generated with help from an AI language model (ChatGPT)
-Student: Raphael Sackey
+Number Guessing Game (CLI)
 
-This program lets the user play a number guessing game.
-The computer picks a random number between 1 and 100 and
-the user tries to guess it. After each guess, the program
-tells the user if the guess is too high, too low, or correct.
-The game also counts how many guesses it took and lets the
-user play again if they want.
+A simple command-line game where the program selects a random number
+and the user attempts to guess it. Demonstrates:
+- input validation
+- loops and conditionals
+- functions and clean program flow
 """
+
+from __future__ import annotations
 
 import random
 
 
-def play_game():
-    """Play one round of the number guessing game."""
-    print("Welcome to the Number Guessing Game!")
-    print("I'm thinking of a number between 1 and 100.")
-    print("Type 'q' to quit at any time.\n")
+MIN_NUMBER = 1
+MAX_NUMBER = 100
 
-    # Generate a random secret number between 1 and 100 (inclusive)
-    secret = random.randint(1, 100)
-    attempts = 0  # Keep track of how many guesses the user makes
+
+def get_guess() -> int | None:
+    """
+    Prompt the user for a guess.
+
+    Returns:
+        int: Valid guess within range.
+        None: If the user quits.
+    """
+    user_input = input(f"Enter your guess ({MIN_NUMBER}-{MAX_NUMBER}) or 'q' to quit: ").strip()
+
+    if user_input.lower() == "q":
+        return None
+
+    try:
+        guess = int(user_input)
+    except ValueError:
+        print("Invalid input. Please enter a whole number.\n")
+        return -1  # sentinel for invalid
+
+    if not (MIN_NUMBER <= guess <= MAX_NUMBER):
+        print(f"Out of range. Please enter a number between {MIN_NUMBER} and {MAX_NUMBER}.\n")
+        return -1
+
+    return guess
+
+
+def play_round() -> None:
+    """Play one round of the guessing game."""
+    secret = random.randint(MIN_NUMBER, MAX_NUMBER)
+    attempts = 0
+
+    print("\nWelcome to the Number Guessing Game!")
+    print(f"I'm thinking of a number between {MIN_NUMBER} and {MAX_NUMBER}.")
 
     while True:
-        guess_input = input("Enter your guess (1-100): ")
+        guess = get_guess()
 
-        # Allow the user to quit by typing 'q'
-        if guess_input.lower() == 'q':
-            print("You quit the game. The number was", secret)
-            break
+        if guess is None:
+            print(f"\nYou quit. The number was {secret}.\n")
+            return
 
-        # Make sure the input can be turned into a whole number
-        try:
-            guess = int(guess_input)
-        except ValueError:
-            print("Please enter a whole number or 'q' to quit.\n")
-            continue
+        if guess == -1:
+            continue  # invalid input; prompt again
 
-        # Check that the guess is in the valid range
-        if guess < 1 or guess > 100:
-            print("Your guess must be between 1 and 100. Try again.\n")
-            continue
+        attempts += 1
 
-        attempts += 1  # Count this as a valid attempt
-
-        # Compare the guess to the secret number
         if guess < secret:
-            print("Too low! Try again.\n")
+            print("Too low. Try again.\n")
         elif guess > secret:
-            print("Too high! Try again.\n")
+            print("Too high. Try again.\n")
         else:
-            # The user guessed correctly
-            print(f"Correct! You guessed the number in {attempts} attempts.\n")
-            break
+            print(f"Correct! You guessed it in {attempts} attempts.\n")
+            return
 
 
-def main():
-    """Main loop: lets the user play multiple rounds."""
+def main() -> None:
+    """Main loop: allows the user to play multiple rounds."""
     while True:
-        play_game()
-        play_again = input("Do you want to play again? (y/n): ").strip().lower()
-        if play_again != 'y':
-            print("Thanks for playing! Goodbye.")
+        play_round()
+        again = input("Play again? (y/n): ").strip().lower()
+        if again != "y":
+            print("Thanks for playing. Goodbye!")
             break
-        print()  # Blank line between games
 
 
-# Only run the game if this file is executed directly
 if __name__ == "__main__":
     main()
