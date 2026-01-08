@@ -9,23 +9,35 @@ and the user attempts to guess it. Demonstrates:
 """
 
 from __future__ import annotations
-
 import random
 
 
-MIN_NUMBER = 1
-MAX_NUMBER = 100
+def choose_range() -> tuple[int, int]:
+    """Let the user choose a difficulty range."""
+    options = {"1": (1, 10), "2": (1, 100), "3": (1, 1000)}
+
+    while True:
+        print("\nChoose difficulty:")
+        print("1) Easy   (1-10)")
+        print("2) Medium (1-100)")
+        print("3) Hard   (1-1000)")
+        choice = input("Select 1, 2, or 3: ").strip()
+
+        if choice in options:
+            return options[choice]
+
+        print("Invalid choice. Please type 1, 2, or 3.\n")
 
 
-def get_guess() -> int | None:
+def get_guess(min_number: int, max_number: int) -> int | None:
     """
     Prompt the user for a guess.
 
     Returns:
         int: Valid guess within range.
-        None: If the user quits.
+        None: If the user quits (types 'q').
     """
-    user_input = input(f"Enter your guess ({MIN_NUMBER}-{MAX_NUMBER}) or 'q' to quit: ").strip()
+    user_input = input(f"Enter your guess ({min_number}-{max_number}) or 'q' to quit: ").strip()
 
     if user_input.lower() == "q":
         return None
@@ -34,32 +46,37 @@ def get_guess() -> int | None:
         guess = int(user_input)
     except ValueError:
         print("Invalid input. Please enter a whole number.\n")
-        return -1  # sentinel for invalid
+        return None
 
-    if not (MIN_NUMBER <= guess <= MAX_NUMBER):
-        print(f"Out of range. Please enter a number between {MIN_NUMBER} and {MAX_NUMBER}.\n")
-        return -1
+    if not (min_number <= guess <= max_number):
+        print(f"Out of range. Please enter a number between {min_number} and {max_number}.\n")
+        return None
 
     return guess
 
 
 def play_round() -> None:
     """Play one round of the guessing game."""
-    secret = random.randint(MIN_NUMBER, MAX_NUMBER)
+    min_number, max_number = choose_range()
+    secret = random.randint(min_number, max_number)
     attempts = 0
 
     print("\nWelcome to the Number Guessing Game!")
-    print(f"I'm thinking of a number between {MIN_NUMBER} and {MAX_NUMBER}.")
+    print(f"I'm thinking of a number between {min_number} and {max_number}.")
 
     while True:
-        guess = get_guess()
+        guess = get_guess(min_number, max_number)
 
         if guess is None:
-            print(f"\nYou quit. The number was {secret}.\n")
-            return
-
-        if guess == -1:
-            continue  # invalid input; prompt again
+            # Could be quit OR invalid; check if they quit by asking last input again is messy,
+            # so we treat None as "keep playing" unless they typed q.
+            # Easiest clean approach: re-prompt with a small message:
+            quit_check = input("Press Enter to keep guessing, or type 'q' to quit: ").strip().lower()
+            if quit_check == "q":
+                print(f"\nYou quit. The number was {secret}.\n")
+                return
+            print()
+            continue
 
         attempts += 1
 
@@ -72,15 +89,26 @@ def play_round() -> None:
             return
 
 
+def ask_play_again() -> bool:
+    """Return True if the user wants to play again."""
+    while True:
+        again = input("Play again? (y/n): ").strip().lower()
+        if again in {"y", "yes"}:
+            return True
+        if again in {"n", "no"}:
+            return False
+        print("Please type 'y' or 'n'.\n")
+
+
 def main() -> None:
     """Main loop: allows the user to play multiple rounds."""
     while True:
         play_round()
-        again = input("Play again? (y/n): ").strip().lower()
-        if again != "y":
+        if not ask_play_again():
             print("Thanks for playing. Goodbye!")
             break
 
 
 if __name__ == "__main__":
     main()
+
